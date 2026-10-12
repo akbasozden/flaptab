@@ -1,47 +1,125 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flaptab · Flaptab</title>
-<link rel="icon" href="icon-128.png">
-<style>
-  :root { color-scheme: light dark; --bg: #f7f6f2; --fg: #1d1e21; --muted: #6b6b70; --line: #deddd6; --accent: #b57800; }
-  @media (prefers-color-scheme: dark) { :root { --bg: #111214; --fg: #ece6d4; --muted: #8a8a8e; --line: #2a2b2f; --accent: #ffbe2e; } }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 720px; margin: 0 auto; padding: 40px 16px 80px; }
-  header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
-  header img { width: 36px; height: 36px; }
-  header a { color: var(--fg); text-decoration: none; font-weight: 700; letter-spacing: .12em; }
-  nav { margin-left: auto; display: flex; gap: 16px; font-size: 14px; }
-  nav a { font-weight: 500; letter-spacing: 0; color: var(--muted); }
-  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 8px; }
-  h2 { font-size: 22px; margin: 40px 0 8px; }
-  h3 { font-size: 17px; margin: 28px 0 4px; }
-  p, ul { margin: 0 0 14px; }
-  hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
-  a { color: var(--accent); }
-  code { font-size: .9em; }
-  .lang { font-size: 14px; color: var(--muted); }
-  .lang a { margin-right: 12px; }
-</style>
+  <meta charset="utf-8">
+  <title>Flaptab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Turns your new tab into a split-flap airport board clock with a time zone map.">
+  <meta property="og:title" content="Flaptab">
+  <meta property="og:description" content="Turns your new tab into a split-flap airport board clock with a time zone map.">
+  <link rel="apple-touch-icon" href="icons/icon-128.png">
+  <script>globalThis.FLAPTAB_WEB = { version: "1.0.0" };</script>
+  <link rel="icon" href="icons/icon-32.png">
+  <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="newtab.css">
+  <script src="prefs.js"></script>
 </head>
 <body>
-<main>
-<header>
-  <img src="icon-128.png" alt="">
-  <a href="index.html">FLAPTAB</a>
-  <nav><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
-</header>
-<h1>Flaptab</h1>
-<p>A split-flap airport board clock with a time zone map for your new tab page.<br>
-Yeni sekmeniz için havalimanı panosu tarzında saat ve saat dilimi haritası.</p>
-<ul>
-<li><a href="privacy.html">Privacy Policy / Gizlilik Politikası</a></li>
-<li><a href="terms.html">Terms of Use / Kullanım Koşulları</a></li>
-</ul>
-<p>Contact / İletişim: <a href="mailto:ozden.akbas@hotmail.com">ozden.akbas@hotmail.com</a></p>
-</main>
+  <button id="gear" class="gear" type="button" aria-expanded="false" aria-controls="settings">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+
+  <div id="settings" class="settings" hidden>
+    <div class="settings-head">
+      <div class="settings-title" data-i18n="settings"></div>
+      <button id="info-btn" class="icon-btn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.01"/></svg>
+      </button>
+    </div>
+    <div class="setting">
+      <div class="label" data-i18n="theme"></div>
+      <div class="seg" data-pref="theme">
+        <button type="button" data-value="board" data-i18n="board"></button>
+        <button type="button" data-value="cockpit" data-i18n="cockpit"></button>
+        <button type="button" data-value="led" data-i18n="led"></button>
+        <button type="button" data-value="classic" data-i18n="classic"></button>
+      </div>
+    </div>
+    <div class="setting">
+      <div class="label" data-i18n="language"></div>
+      <div class="seg" data-pref="lang">
+        <button type="button" data-value="en" lang="en" title="English">EN</button>
+        <button type="button" data-value="tr" lang="tr" title="Türkçe">TR</button>
+        <button type="button" data-value="ar" lang="ar" title="العربية">AR</button>
+        <button type="button" data-value="zh" lang="zh" title="中文">ZH</button>
+        <button type="button" data-value="fr" lang="fr" title="Français">FR</button>
+        <button type="button" data-value="ru" lang="ru" title="Русский">RU</button>
+        <button type="button" data-value="es" lang="es" title="Español">ES</button>
+        <button type="button" data-value="de" lang="de" title="Deutsch">DE</button>
+      </div>
+    </div>
+    <div class="setting">
+      <div class="label" data-i18n="format"></div>
+      <div class="seg" data-pref="hour">
+        <button type="button" data-value="24" data-i18n="h24"></button>
+        <button type="button" data-value="12">AM/PM</button>
+      </div>
+    </div>
+    <div class="setting">
+      <div class="label" data-i18n="seconds"></div>
+      <div class="seg" data-pref="sec">
+        <button type="button" data-value="off" data-i18n="off"></button>
+        <button type="button" data-value="on" data-i18n="on"></button>
+      </div>
+    </div>
+    <div class="setting">
+      <div class="label" data-i18n="location"></div>
+      <div class="seg" data-pref="loc">
+        <button type="button" data-value="off" data-i18n="off"></button>
+        <button type="button" data-value="on" data-i18n="on"></button>
+      </div>
+      <div id="loc-status" class="status" data-i18n="locError" hidden></div>
+    </div>
+  </div>
+
+  <dialog id="info" class="info" tabindex="-1">
+    <div class="settings-head">
+      <div id="info-title" class="settings-title"></div>
+      <button id="info-close" class="icon-btn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div id="info-body" class="info-body"></div>
+  </dialog>
+
+  <main class="board">
+    <section class="row">
+      <div id="zone-label" class="label"></div>
+      <div id="time" class="flaps lg"></div>
+    </section>
+
+    <section class="row">
+      <div class="label" data-label="date"></div>
+      <div id="date" class="flaps md"></div>
+    </section>
+
+    <section class="row">
+      <div class="label" data-label="day"></div>
+      <div id="day" class="flaps sm"></div>
+    </section>
+
+    <section class="row map-row">
+      <div id="map-label" class="label"></div>
+      <svg id="map" class="map" viewBox="0 0 360 146" role="group"></svg>
+      <button id="reset" class="reset" type="button" data-i18n="reset"></button>
+    </section>
+  </main>
+  <script src="i18n.js"></script>
+  <script src="info.js"></script>
+  <script src="world.js"></script>
+  <script src="tz-bands.js"></script>
+  <script src="newtab.js"></script>
+  <footer class="web-links">
+    <a href="privacy.html">Privacy</a><span>·</span><a href="terms.html">Terms</a>
+  </footer>
+  <style>
+    .web-links { position: fixed; inset-inline: 0; bottom: 10px; display: flex; justify-content: center; gap: 8px;
+      font: 500 11px var(--font); letter-spacing: .08em; color: var(--label-2); pointer-events: none; }
+    .web-links a { color: inherit; text-decoration: none; pointer-events: auto; }
+    .web-links a:hover { color: var(--accent); }
+  </style>
 </body>
 </html>

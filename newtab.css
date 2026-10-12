@@ -1,0 +1,561 @@
+/* ---------- Yazı tipleri ----------
+   Sistem fontlarına (Helvetica Neue / SF Mono macOS'ta var, Windows'ta yok) güvenmek yerine
+   fontlar eklentiyle birlikte gelir; pano her işletim sisteminde aynı harflerle çizilir.
+   Inter, JetBrains Mono, Noto Sans Arabic ve Noto Sans SC: SIL Open Font License 1.1 (fonts/*-OFL.txt). */
+@font-face {
+  font-family: "Flaptab Sans";
+  src: url("fonts/inter-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: block;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "Flaptab Sans";
+  src: url("fonts/inter-latin-ext-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: block;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: "Flaptab Sans";
+  src: url("fonts/inter-cyrillic-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: block;
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+@font-face {
+  font-family: "Flaptab Mono";
+  src: url("fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: block;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: "Flaptab Mono";
+  src: url("fonts/jetbrains-mono-latin-ext-wght-normal.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: block;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: "Flaptab Mono";
+  src: url("fonts/jetbrains-mono-cyrillic-wght-normal.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: block;
+  unicode-range: U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116;
+}
+
+/* Arapça ve Çince: Inter ve JetBrains Mono bu yazı sistemlerini içermez. Çince font yalnızca arayüzde
+   geçen karakterleri içeren bir alt kümedir; Çince metin değişirse tools/subset-cjk.sh ile yeniden üretin. */
+@font-face {
+  font-family: "Flaptab Arabic";
+  src: url("fonts/noto-sans-arabic-arabic-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: block;
+  unicode-range: U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+FB50-FDFF,U+FE70-FEFC;
+}
+@font-face {
+  font-family: "Flaptab CJK";
+  src: url("fonts/noto-sans-sc-subset-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: block;
+  unicode-range: U+2E80-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF;
+}
+
+/* ---------- Temalar ---------- */
+/* Pano: flat split-flap varış panosu */
+:root,
+:root[data-theme="board"] {
+  --bg: #111214;
+  --tile: #1f2023;
+  --tile-text: #f1ead6;
+  --split: #111214;
+  --label: #6f6e68;
+  --label-2: #4c4b47;
+  --accent: #f1ead6;
+  --dot: #34363b;
+  --dot-hover: #6f6e68;
+  --band-hover: #17181b;
+  --tick: #1b1c1f;
+  --panel: #1a1b1e;
+  --panel-line: #26272b;
+  --glow: none;
+  --here: #ff6a3d;
+  --font: "Flaptab Sans", "Flaptab Arabic", "Flaptab CJK", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --flap-weight: 600;
+}
+
+/* Kokpit: FMS / MCDU ekranı — siyah zemin, fosfor yeşili veri, camgöbeği başlıklar */
+:root[data-theme="cockpit"] {
+  --bg: #030504;
+  --tile: #08100b;
+  --tile-text: #4cf25a;
+  --split: #030504;
+  --label: #39c9f2;
+  --label-2: #1f6f86;
+  --accent: #eef3ef;
+  --dot: #0f2a15;
+  --dot-hover: #2a8a3c;
+  --band-hover: #07100a;
+  --tick: #0a140d;
+  --panel: #060b08;
+  --panel-line: #12301a;
+  --glow: 0 0 .18em rgba(76, 242, 90, .45);
+  --here: #ff4fd8; /* FMS'te aktif nokta macentadır */
+  --font: "Flaptab Mono", "Flaptab Arabic", "Flaptab CJK", "SF Mono", Menlo, Consolas, monospace;
+  --flap-weight: 500;
+}
+
+/* LED: amber nokta matrisi varış panosu */
+:root[data-theme="led"] {
+  --bg: #161718;
+  --tile: #0a0a0b;
+  --tile-text: #ffb31a;
+  --split: transparent;
+  --label: #c9c9c9;
+  --label-2: #6d6d6d;
+  --accent: #ffb31a;
+  --dot: #33280f;
+  --dot-hover: #7a5a17;
+  --band-hover: #1c1d1f;
+  --tick: #202123;
+  --panel: #101112;
+  --panel-line: #2a2b2d;
+  --glow: 0 0 .12em rgba(255, 179, 26, .55);
+  --here: #ff3b1f; /* panodaki DELAYED kırmızısı */
+  --font: "Flaptab Sans", "Flaptab Arabic", "Flaptab CJK", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --flap-weight: 700;
+}
+
+/* Klasik: Solari kalkış panosu — siyah kartlarda sarı harfler, renkli sütunlar */
+:root[data-theme="classic"] {
+  --bg: #070707;
+  --tile: #141414;
+  --tile-text: #ffd21a;
+  --split: #000;
+  --label: #f4f4f4;
+  --label-2: #8a8a8a;
+  --accent: #ffffff;
+  --dot: #2b2a26;
+  --dot-hover: #6e6a55;
+  --band-hover: #121212;
+  --tick: #161616;
+  --panel: #101010;
+  --panel-line: #2a2a2a;
+  --glow: none;
+  --here: #ff2a1a; /* panodaki kırmızı LED saat */
+  --font: "Flaptab Sans", "Flaptab Arabic", "Flaptab CJK", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --flap-weight: 700;
+}
+[data-theme="classic"] #time { --tile: #3a210b; }
+[data-theme="classic"] #date { --tile: #241a40; }
+[data-theme="classic"] #day  { --tile: #11301f; }
+
+/* ---------- Ölçü sistemi ----------
+   Tüm kartlar, boşluklar ve harita tek bir birimden (--u) türetilir; her ekranda oranlar sabit kalır.
+   Dikey: kartlar + harita + satır araları ≈ 62u, etiketler/düğme/kenar boşlukları ≈ 180px.
+   Yatay: saniyeli saat satırı ≈ 76u, harita 72u; en geniş öğe 80u'ya sığar. */
+:root {
+  --u: clamp(4px, min((100vh - 180px) / 62, (100vw - 32px) / 80), 14px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Yazı ve kontrollerin işletim sistemine göre farklı çizilmesini önler */
+html {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-line) var(--bg);
+}
+button {
+  appearance: none;
+  font-family: inherit;
+  line-height: normal;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--tile-text);
+  font-family: var(--font);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: max(24px, 4vh) 16px 24px;
+  overflow-x: hidden;
+  transition: background-color .3s;
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 2.4);
+}
+
+/* ---------- Satırlar ---------- */
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: var(--label);
+  white-space: nowrap;
+}
+.label i {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--label-2);
+  margin-inline-start: .6em;
+}
+
+.flaps {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+.flaps { --h: calc(var(--w) * 1.42); --gap: calc(var(--w) * .07); }
+.flaps.lg { --w: calc(var(--u) * 10); }
+.flaps.md { --w: calc(var(--u) * 4.2); }
+.flaps.sm { --w: calc(var(--u) * 3.2); }
+
+/* Sağdan sola yazılan dillerde de pano ve harita soldan sağa dizilir */
+.flaps, .map { direction: ltr; }
+
+/* Arapça gün adı: harf kartları yerine tek geniş kelime kartı */
+.flap.word {
+  width: calc(var(--w) * 5);
+  font-size: calc(var(--h) * .5);
+}
+.flap.word .half span { direction: rtl; }
+
+/* Çince karakterler tam genişliktedir; kartın içine sığsın diye küçültülür */
+:root[lang="zh"] #day .flap { font-size: calc(var(--h) * .58); }
+
+/* Ayraç kartları (":" ve "/"): rakam kartıyla aynı yükseklikte, daha dar */
+.flap.narrow { width: calc(var(--w) * .55); }
+/* İki nokta, ortadaki ayrım çizgisinin iki yanına eşit otursun */
+.flap.colon-card .half span { position: relative; top: -.11em; }
+
+/* Saniye kartları yalnızca ayar açıkken */
+#time:not(.with-sec) .sec { display: none; }
+
+/* AM/PM: ilk saat kartının sol altında, karta basılı gibi */
+.ampm {
+  position: absolute;
+  left: 9%;
+  bottom: 8%;
+  z-index: 4;
+  font-size: calc(var(--h) * .11);
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.ampm:empty { display: none; }
+
+
+/* ---------- Split-flap kartı (düz) ---------- */
+.flap {
+  position: relative;
+  width: var(--w);
+  height: var(--h);
+  perspective: calc(var(--h) * 5);
+  font-size: calc(var(--h) * .74);
+  font-weight: var(--flap-weight);
+  color: var(--tile-text);
+  text-shadow: var(--glow);
+}
+
+.half {
+  position: absolute;
+  left: 0; right: 0;
+  height: 50%;
+  overflow: hidden;
+  background: var(--tile);
+  backface-visibility: hidden;
+  transition: background-color .3s;
+}
+.half span {
+  display: block;
+  height: var(--h);
+  line-height: var(--h);
+  text-align: center;
+}
+
+.top, .flip-top {
+  top: 0;
+  border-radius: calc(var(--w) * .05) calc(var(--w) * .05) 0 0;
+  transform-origin: bottom;
+}
+.bottom, .flip-bottom {
+  bottom: 0;
+  border-radius: 0 0 calc(var(--w) * .05) calc(var(--w) * .05);
+  transform-origin: top;
+}
+.bottom span, .flip-bottom span { transform: translateY(-50%); }
+
+.top, .bottom { z-index: 1; }
+.flip-top, .flip-bottom { z-index: 2; }
+.flip-bottom { transform: rotateX(90deg); }
+.flap:not(.flipping) .flip-top,
+.flap:not(.flipping) .flip-bottom { visibility: hidden; }
+
+/* LED: harfler noktalardan oluşur, arkada sönük LED ızgarası */
+[data-theme="led"] .half {
+  background:
+    radial-gradient(circle, #1d1709 0 38%, transparent 42%) 0 0 / var(--led) var(--led),
+    var(--tile);
+}
+[data-theme="led"] .flap { --led: calc(var(--h) / 18); }
+[data-theme="led"] .half span {
+  -webkit-mask: radial-gradient(circle, #000 0 50%, transparent 56%) 0 0 / var(--led) var(--led);
+  mask: radial-gradient(circle, #000 0 50%, transparent 56%) 0 0 / var(--led) var(--led);
+}
+
+/* Ortadaki ayrım çizgisi */
+.flap::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: max(2px, calc(var(--h) * .014));
+  transform: translateY(-50%);
+  background: var(--split);
+  z-index: 3;
+}
+
+/* ---------- Saat dilimi haritası ---------- */
+.map {
+  display: block;
+  width: calc(var(--u) * 72);
+  height: auto;
+  user-select: none;
+}
+
+.band { cursor: pointer; outline: none; }
+.band-bg { fill: transparent; transition: fill .15s; }
+.dots { fill: var(--dot); transition: fill .15s; }
+.tick { stroke: var(--tick); stroke-width: .3; }
+.band text {
+  font-family: var(--font);
+  font-size: 4.4px;
+  font-weight: 700;
+  fill: var(--label);
+  opacity: .6;
+}
+
+.band:hover .band-bg,
+.band:focus-visible .band-bg { fill: var(--band-hover); }
+.band:hover .dots,
+.band:focus-visible .dots,
+.band.pulse .dots { fill: var(--dot-hover); }
+
+.band.home text { opacity: 1; }
+.band.selected .dots { fill: var(--tile-text); }
+.band.selected text { fill: var(--tile-text); opacity: 1; }
+
+/* Konum noktası */
+.here { pointer-events: none; }
+.here-dot { fill: var(--here); }
+.here-halo { fill: none; stroke: var(--here); stroke-width: .3; opacity: .6; }
+.here-ring {
+  fill: none;
+  stroke: var(--here);
+  stroke-width: .5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ping 2.4s ease-out infinite;
+}
+@keyframes ping {
+  from { transform: scale(.6); opacity: .9; }
+  to   { transform: scale(3); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .here-ring { animation: none; opacity: .6; }
+}
+
+/* Yerel saate dön: haritanın altında, ortalı. Yeri hep ayrılı, sayfa zıplamaz. */
+.reset {
+  font: 700 11px var(--font);
+  letter-spacing: .22em;
+  color: var(--accent);
+  background: var(--tile);
+  border: 0;
+  padding: 8px 16px;
+  cursor: pointer;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .2s, visibility .2s, background-color .15s;
+}
+.reset.shown { visibility: visible; opacity: 1; }
+.reset:hover { background: var(--panel-line); }
+
+[data-theme="cockpit"] .reset { background: transparent; }
+
+/* ---------- Ayarlar ---------- */
+.gear {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--label);
+  cursor: pointer;
+  transition: color .15s, transform .4s;
+}
+.gear svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gear:hover,
+.gear[aria-expanded="true"] { color: var(--accent); }
+.gear[aria-expanded="true"] { transform: rotate(60deg); }
+
+.settings {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  z-index: 10;
+  min-width: 240px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+}
+.settings[hidden] { display: none; }
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  margin: -6px -6px -6px 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--label);
+  cursor: pointer;
+  transition: color .15s;
+}
+.icon-btn:hover { color: var(--accent); }
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.settings-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: var(--accent);
+}
+/* Kokpitte MCDU'daki gibi kesik çizgi ayırıcı */
+[data-theme="cockpit"] .settings-head {
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--tile-text);
+}
+
+.setting { display: flex; flex-direction: column; gap: 8px; }
+.status {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--here);
+}
+.status[hidden] { display: none; }
+
+.seg { display: flex; gap: 4px; }
+.seg[data-pref="theme"] { display: grid; grid-template-columns: 1fr 1fr; }
+.seg[data-pref="lang"] { display: grid; grid-template-columns: repeat(4, 1fr); }
+.seg button {
+  flex: 1;
+  font: 700 11px var(--font);
+  letter-spacing: .16em;
+  padding: 8px 10px;
+  color: var(--label);
+  background: var(--tile);
+  border: 0;
+  cursor: pointer;
+  transition: color .15s, background-color .15s;
+}
+.seg button:hover { color: var(--accent); }
+.seg button[aria-pressed="true"] {
+  color: var(--bg);
+  background: var(--tile-text);
+}
+
+:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+
+/* Arapça bitişik yazılır: harf aralığı harfleri birbirinden koparır */
+:root[lang="ar"] :is(.label, .reset, .seg button, .settings-title, .status, .info-body h3) {
+  letter-spacing: 0;
+}
+
+/* ---------- Hakkında penceresi ---------- */
+.info {
+  margin: auto;
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(640px, calc(100vh - 64px));
+  padding: 20px;
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--tile-text);
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  font-family: var(--font);
+}
+.info[open] { display: flex; }
+.info:focus-visible { outline: none; }
+.info::backdrop { background: rgba(0, 0, 0, .6); }
+
+.info-body {
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-line) transparent;
+}
+.info-body h3 {
+  margin: 18px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+.info-body h3:first-child { margin-top: 0; }
+.info-body p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--tile-text);
+  opacity: .85;
+}
