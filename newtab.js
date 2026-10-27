@@ -21,6 +21,47 @@ const REPLAY_EVERY = 15; // dakika
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const t = (key) => I18N[prefs.lang][key];
 
+// ---------- Kart sesi (yalnızca Pano teması) ----------
+// Gerçek bir Solari panosunun kart vuruşları: sounds/flap.wav, Freesound #261244 (ngruber, CC0) kaydından
+// ayıklanmış 10 ayrı vuruş, her biri 80 ms'lik bir yuvada. Her dönüşte rastgele biri hafif farklı hız ve
+// şiddette çalınır. Tarayıcı, sayfaya bir kez tıklanana kadar sesi engelleyebilir.
+const CLACK_GAP = 6; // ms; aynı anda dönen onlarca kart sesi bir tıkırtı yağmuruna dönüşsün, gürültüye değil
+const CLIP_SLOT = .08, CLIP_LEN = .07; // saniye
+let audio = null, clackBuf = null, lastClack = 0;
+
+function audioCtx() {
+  if (!audio) {
+    audio = new AudioContext();
+    fetch("sounds/flap.wav")
+      .then((r) => r.arrayBuffer())
+      .then((data) => audio.decodeAudioData(data))
+      .then((buf) => { clackBuf = buf; })
+      .catch(() => {}); // ses yüklenemezse kartlar sessiz döner
+  }
+  if (audio.state === "suspended") audio.resume();
+  return audio;
+}
+
+function clack() {
+  if (prefs.sound !== "on" || document.documentElement.dataset.theme !== "board" || document.hidden) return;
+  const now = performance.now();
+  if (now - lastClack < CLACK_GAP) return;
+  lastClack = now;
+  const ctx = audioCtx();
+  if (ctx.state !== "running" || !clackBuf) return;
+  const clips = Math.floor(clackBuf.duration / CLIP_SLOT + .01);
+  const src = ctx.createBufferSource();
+  src.buffer = clackBuf;
+  src.playbackRate.value = .94 + Math.random() * .12;
+  const gain = ctx.createGain();
+  gain.gain.value = .25 + Math.random() * .2;
+  src.connect(gain).connect(ctx.destination);
+  src.start(0, Math.floor(Math.random() * clips) * CLIP_SLOT, CLIP_LEN);
+}
+
+// Tarayıcının ses kilidi ilk kullanıcı etkileşiminde açılır
+addEventListener("pointerdown", () => { if (prefs.sound === "on") audioCtx(); }, { once: true });
+
 // Tek bir mekanik kart: hedef karaktere ulaşana kadar sırayla döner.
 class Flap {
   constructor(chars) {
@@ -94,6 +135,8 @@ class Flap {
     this.top.textContent = next;
     this.flipBottom.textContent = next;
     this.el.classList.add("flipping");
+    // Saniye kartları her saniye döndüğünden sessizdir; gizli kartlar da ses çıkarmaz
+    if (!this.el.classList.contains("sec") && this.el.offsetParent !== null) clack();
 
     const half = duration / 2;
     const down = this.flipTop.parentNode.animate(
@@ -177,6 +220,11 @@ const ampmEl = document.createElement("span");
 ampmEl.className = "ampm";
 timeFlaps[0].el.append(ampmEl);
 
+// Ses ayarı yalnızca Pano temasında görünür
+function applySoundSetting() {
+  document.getElementById("sound-setting").hidden = prefs.theme !== "board";
+}
+
 function applySeconds() {
   timeEl.classList.toggle("with-sec", prefs.sec === "on");
 }
@@ -214,6 +262,8 @@ const city = (o) => t("cities")[o + 12];
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const MAP_H = 136; // kara alanının yüksekliği (enlem derecesi); altında etiket şeridi var
+const DOT = WORLD.step * .7; // kara noktasının kenarı; aralarda ızgaranın %30'u kadar boşluk kalır
+const MARK = WORLD.step / 1.5; // konum işaretinin ölçeği (1,5°'lik ızgarada 1)
 const mapEl = document.getElementById("map");
 const zoneLabel = document.getElementById("zone-label");
 const mapLabel = document.getElementById("map-label");
@@ -236,25 +286,31 @@ function el(tag, attrs) {
   return e;
 }
 
-const landDots = []; // { x, y, lat, lon } — konum noktası aramak için
+const landDots = []; // { x, y, row, col, lat, lon, tz }
+const landGrid = new Map(); // satır * 1000 + sütun -> nokta; imlecin altındaki noktayı bulmak için
+
+// Kara noktalarının IANA dilimi places.js'te iki karakterlik sıra numarasıyla saklanır
+const B64 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
+const dotZone = (i) => PLACES.zones[B64.indexOf(PLACES.dots[i * 2]) * 64 + B64.indexOf(PLACES.dots[i * 2 + 1])];
 
 function buildMap() {
   const { step, rows, top } = WORLD;
-  const dots = {};
-  rows.forEach((hex, i) => {
-    const y = step / 2 + i * step;
+  rows.forEach((hex, row) => {
+    const y = step / 2 + row * step;
     [...hex].forEach((h, k) => {
       const nib = parseInt(h, 16);
       for (let b = 0; b < 4; b++) {
         if (!(nib & (8 >> b))) continue;
-        const x = step / 2 + (k * 4 + b) * step;
-        const o = Math.round((x - 180) / 15);
-        dots[o] = (dots[o] || "") + `M${(x - .5).toFixed(2)} ${(y - .5).toFixed(2)}h1v1h-1z`;
-        landDots.push({ x, y, lat: top - y, lon: x - 180 });
+        const col = k * 4 + b, x = step / 2 + col * step;
+        const d = { x, y, row, col, lat: top - y, lon: x - 180, tz: dotZone(landDots.length) };
+        landDots.push(d);
+        landGrid.set(row * 1000 + col, d);
       }
     });
   });
 
+  // Bantlar: denizdeki nominal 15°'lik dilimler, alttaki etiketler ve klavyeyle seçim. Ayraç çizgileri yalnızca
+  // denizden geçer; karada dilimler ülke sınırlarını izler (zonesEl).
   const bands = [];
   for (let o = -12; o <= 12; o++) {
     const x0 = Math.max(0, 180 + o * 15 - 7.5);
@@ -263,8 +319,7 @@ function buildMap() {
     g.dataset.o = o;
     g.append(
       el("rect", { class: "band-bg", x: x0, y: 0, width: x1 - x0, height: MAP_H }),
-      el("path", { class: "dots", d: dots[o] || "" }),
-      el("line", { class: "tick", x1: x0, y1: 0, x2: x0, y2: MAP_H }),
+      el("path", { class: "tick", d: seaLine(x0) }),
     );
     const txt = el("text", { x: (x0 + x1) / 2, y: MAP_H + 7.5, "text-anchor": "middle" });
     txt.textContent = o === 0 ? "0" : (o > 0 ? "+" : "−") + Math.abs(o);
@@ -272,52 +327,118 @@ function buildMap() {
     mapEl.append(g);
     bands.push(g);
 
-    g.addEventListener("click", () => choose(o));
     g.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(o); }
     });
-    g.addEventListener("pointerenter", () => hover(o));
-    g.addEventListener("pointerleave", () => hover(null));
     g.addEventListener("focus", () => hover(o));
     g.addEventListener("blur", () => hover(null));
   }
   return bands;
 }
 
+// x'teki dikey ayraç çizgisinin yalnızca denizden geçen parçaları (iki yanındaki nokta sütunu da boşsa)
+function seaLine(x) {
+  const { step, rows } = WORLD;
+  const left = Math.floor(x / step - .5), right = left + 1;
+  let d = "", from = null;
+  for (let row = 0; row <= rows.length; row++) {
+    const sea = row < rows.length && !landGrid.has(row * 1000 + left) && !landGrid.has(row * 1000 + right);
+    if (sea && from === null) from = row;
+    if (!sea && from !== null) { d += `M${x} ${from * step}V${row * step}`; from = null; }
+  }
+  return d;
+}
+
+// ---------- Saat dilimi bölgeleri ----------
+// Kara noktaları şu anki UTC farklarına (yaz saati dahil) göre gruplanır; her grup bir dilimdir ve bir bütün
+// olarak parlar. Yarım saatlik dilimler (Hindistan, İran…) karada ayrı gruplardır. Yaz saati geçişleri için
+// gruplar çeyrek saatte bir yenilenir.
+const zonesEl = el("g", { class: "zones" });
+let zoneEls = new Map(); // fark -> <path>
+
+function drawZones() {
+  const offsets = new Map(), paths = new Map();
+  for (const d of landDots) {
+    if (!offsets.has(d.tz)) offsets.set(d.tz, tzOffset(d.tz));
+    d.off = offsets.get(d.tz);
+    paths.set(d.off, (paths.get(d.off) || "") + `M${(d.x - DOT / 2).toFixed(2)} ${(d.y - DOT / 2).toFixed(2)}h${DOT}v${DOT}h${-DOT}z`);
+  }
+  zoneEls = new Map([...paths].sort((a, b) => a[0] - b[0]).map(([off, d]) => [off, el("path", { class: "dots", d })]));
+  zonesEl.replaceChildren(...zoneEls.values());
+}
+
+// İmlecin altındaki dilim: karadaysa noktanın gerçek farkı, denizdeyse o boylamın nominal bandı
+function zoneAt(e) {
+  const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(mapEl.getScreenCTM().inverse());
+  if (p.x < 0 || p.x > 360 || p.y < 0 || p.y > MAP_H + 10) return null;
+  const d = p.y < MAP_H && landGrid.get(Math.floor(p.y / WORLD.step) * 1000 + Math.floor(p.x / WORLD.step));
+  return d ? d.off : Math.max(-12, Math.min(12, Math.round((p.x - 180) / 15)));
+}
+
+mapEl.addEventListener("click", (e) => { const o = zoneAt(e); if (o !== null) choose(o); });
+mapEl.addEventListener("pointermove", (e) => { const o = zoneAt(e); if (o !== hovered) hover(o); });
+mapEl.addEventListener("pointerleave", () => hover(null));
+
 // "BİRİNCİL <i>İngilizce</i>" biçiminde etiket; İngilizce seçiliyse ikinci kısım yok.
 function bilingual(key) {
   return prefs.lang === "en" ? t(key) : `${t(key)} <i>${I18N.en[key]}</i>`;
 }
 
-// Kullanıcının haritada bulunduğu bant. Saat farkına değil coğrafyaya bakar:
-// örneğin Türkiye UTC+3 kullanır ama coğrafi olarak +2 bandındadır.
-const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const tzBand = Object.keys(TZ_BANDS).find((b) => TZ_BANDS[b].split(" ").includes(tzName));
+// Kullanıcının dilimi: yerel saatin şu anki farkı. Dilimler ülke sınırlarını izlediğinden Türkiye, coğrafi olarak
+// +2 bandında olsa da +3 dilimiyle birlikte parlar.
+const homeZone = () => localOffset();
 
-function homeBand() {
-  if (prefs.loc === "on" && prefs.coords) return Math.max(-12, Math.min(12, Math.round(prefs.coords.lon / 15)));
-  if (tzBand !== undefined) return Number(tzBand);
-  return Math.round(localOffset());
+// ---------- Başkentler ----------
+// Bir dilimde şu an o saati kullanan en kalabalık başkentler (places.js, nüfusa göre sıralı).
+// Farklar yaz saatiyle değiştiğinden gruplama 10 dakikada bir yenilenir.
+const CAPITALS_MAX = 4;
+const offsetFmts = new Map();
+let capitalGroups = null, capitalsAt = 0;
+
+// IANA diliminin şu anki UTC farkı (saat), yaz saati dahil: "GMT+5:30" -> 5.5
+function tzOffset(tz) {
+  if (!offsetFmts.has(tz)) offsetFmts.set(tz, new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" }));
+  const name = offsetFmts.get(tz).formatToParts(new Date()).find((p) => p.type === "timeZoneName")?.value ?? "";
+  const m = name.match(/([+-])(\d+)(?::(\d+))?/);
+  return m ? (m[1] === "-" ? -1 : 1) * (+m[2] + (+m[3] || 0) / 60) : 0;
 }
 
-const zoneText = (o) => o === homeBand()
-  ? `${t("local")} <i>${fmtOffset(localOffset())}</i>`
-  : `${fmtOffset(o)} <i>${city(o)}</i>`;
+function capitals(o) {
+  if (!capitalGroups || Date.now() - capitalsAt > 600e3) {
+    capitalGroups = new Map();
+    capitalsAt = Date.now();
+    for (const [, , tz, , en, names] of PLACES.capitals) {
+      const off = tzOffset(tz);
+      if (!capitalGroups.has(off)) capitalGroups.set(off, []);
+      capitalGroups.get(off).push({ en, names });
+    }
+  }
+  return (capitalGroups.get(o) || []).slice(0, CAPITALS_MAX)
+    .map((c) => (c.names[prefs.lang] ?? c.en).toLocaleUpperCase(prefs.lang));
+}
 
+// Dilim etiketi: fark ve o dilimdeki başkentler; başkent yoksa örnek şehir
+const zoneText = (o) => o === homeZone()
+  ? `${t("local")} <i>${[fmtOffset(localOffset()), ...capitals(localOffset())].join(" · ")}</i>`
+  : `${fmtOffset(o)} <i>${capitals(o).join(" · ") || city(o) || ""}</i>`;
+
+// Haritanın üstündeki etiket: üzerine gelinen dilim, yoksa seçili dilim, o da yoksa "SAAT DİLİMİ"
 function hover(o) {
   hovered = o;
-  mapLabel.innerHTML = o === null ? bilingual("zone") : zoneText(o);
+  const shown = o ?? selected;
+  mapLabel.innerHTML = shown === null ? bilingual("zone") : zoneText(shown);
+  for (const [off, p] of zoneEls) p.classList.toggle("hover", off === o);
 }
 
 function choose(o) {
   // Kendi bandına ya da seçili banda tıklamak yerel saate döner
-  selected = o === homeBand() || o === selected ? null : o;
+  selected = o === homeZone() || o === selected ? null : o;
   refreshMap();
   render();
 }
 
 function refreshMap() {
-  const home = homeBand();
+  const home = homeZone();
   const shown = selected ?? home;
   for (const g of bands) {
     const o = Number(g.dataset.o);
@@ -326,21 +447,25 @@ function refreshMap() {
     g.setAttribute("aria-pressed", o === shown);
     g.setAttribute("aria-label", zoneText(o).replace(/<\/?i>/g, ""));
   }
+  for (const [off, p] of zoneEls) p.classList.toggle("selected", off === shown);
   zoneLabel.innerHTML = selected === null
     ? `${t("local")} <i>${fmtOffset(localOffset())}</i>`
-    : `${fmtOffset(selected)} <i>${city(selected)}</i>`;
+    : `${fmtOffset(selected)} <i>${capitals(selected)[0] ?? city(selected) ?? ""}</i>`;
   resetBtn.classList.toggle("shown", selected !== null);
   resetBtn.tabIndex = selected === null ? -1 : 0;
   resetBtn.setAttribute("aria-hidden", selected === null);
+  hover(hovered);
 }
 
 const bands = buildMap();
+mapEl.append(zonesEl);
+drawZones();
 
 // Pano dönerken haritada soldan sağa bir tarama dalgası geçer: her dilim sırayla bir an parlar.
 const SWEEP_STEP = 40, SWEEP_HOLD = 220; // ms
 function sweepMap() {
   if (reduceMotion || document.hidden) return;
-  bands.forEach((g, i) => {
+  [...zoneEls.values()].forEach((g, i) => {
     setTimeout(() => {
       g.classList.add("pulse");
       setTimeout(() => g.classList.remove("pulse"), SWEEP_HOLD);
@@ -375,9 +500,9 @@ function drawHere() {
   title.textContent = t("here");
   hereEl.append(
     title,
-    el("circle", { class: "here-ring", cx: d.x, cy: d.y, r: 1.6 }),
-    el("rect", { class: "here-halo", x: d.x - 1.6, y: d.y - 1.6, width: 3.2, height: 3.2 }),
-    el("rect", { class: "here-dot", x: d.x - .9, y: d.y - .9, width: 1.8, height: 1.8 }),
+    el("circle", { class: "here-ring", cx: d.x, cy: d.y, r: 1.6 * MARK }),
+    el("rect", { class: "here-halo", x: d.x - 1.6 * MARK, y: d.y - 1.6 * MARK, width: 3.2 * MARK, height: 3.2 * MARK }),
+    el("rect", { class: "here-dot", x: d.x - .9 * MARK, y: d.y - .9 * MARK, width: 1.8 * MARK, height: 1.8 * MARK }),
   );
 }
 
@@ -472,7 +597,11 @@ panel.querySelectorAll(".seg button").forEach((b) => {
     syncSettingsUI();
     if (key === "theme") {
       document.documentElement.dataset.theme = prefs.theme;
+      applySoundSetting();
       replay();
+    } else if (key === "sound") {
+      // Açınca kısa bir dönüşle sesi dinlet (tıklama ses kilidini de açar)
+      if (prefs.sound === "on") { audioCtx(); setTimeout(idleSpin, 150); }
     } else if (key === "hour") {
       render();
     } else if (key === "sec") {
@@ -521,7 +650,12 @@ function render() {
   const m = new Date().getMinutes();
   if (m !== lastMinute) {
     lastMinute = m;
-    if (m % REPLAY_EVERY === 0) replay();
+    if (m % REPLAY_EVERY === 0) {
+      // Yaz saati geçişleri çeyrek saatlerde olur; dilim bölgeleri de o anda yeniden hesaplanır
+      drawZones();
+      refreshMap();
+      replay();
+    }
   }
 }
 
@@ -530,6 +664,7 @@ syncSettingsUI();
 drawHere();
 if (prefs.loc === "on") locate();
 applySeconds();
+applySoundSetting();
 render();
 sweepMap(); // açılıştaki ilk dönüşe haritadaki tarama dalgası eşlik eder
 // Saniye sınırına hizala ki dakika değişimi tam zamanında dönsün

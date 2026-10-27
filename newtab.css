@@ -153,10 +153,10 @@
 
 /* ---------- Ölçü sistemi ----------
    Tüm kartlar, boşluklar ve harita tek bir birimden (--u) türetilir; her ekranda oranlar sabit kalır.
-   Dikey: kartlar + harita + satır araları ≈ 62u, etiketler/düğme/kenar boşlukları ≈ 180px.
-   Yatay: saniyeli saat satırı ≈ 76u, harita 72u; en geniş öğe 80u'ya sığar. */
+   Dikey: kartlar + harita + satır araları ≈ 65u, etiketler/düğme/kenar boşlukları ≈ 180px.
+   Yatay: saniyeli saat satırı ≈ 76u, harita 80u; en geniş öğe 80u'ya sığar. */
 :root {
-  --u: clamp(4px, min((100vh - 180px) / 62, (100vw - 32px) / 80), 14px);
+  --u: clamp(4px, min((100vh - 180px) / 65, (100vw - 32px) / 80), 14px);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -335,12 +335,13 @@ body {
 /* ---------- Saat dilimi haritası ---------- */
 .map {
   display: block;
-  width: calc(var(--u) * 72);
+  width: calc(var(--u) * 80);
   height: auto;
   user-select: none;
 }
 
-.band { cursor: pointer; outline: none; }
+.map { cursor: pointer; }
+.band { outline: none; }
 .band-bg { fill: transparent; transition: fill .15s; }
 .dots { fill: var(--dot); transition: fill .15s; }
 .tick { stroke: var(--tick); stroke-width: .3; }
@@ -352,14 +353,13 @@ body {
   opacity: .6;
 }
 
-.band:hover .band-bg,
+/* Kara noktaları bantlarda değil, ülke sınırlarını izleyen dilim gruplarındadır (.zones .dots) */
 .band:focus-visible .band-bg { fill: var(--band-hover); }
-.band:hover .dots,
-.band:focus-visible .dots,
-.band.pulse .dots { fill: var(--dot-hover); }
+.dots.hover,
+.dots.pulse { fill: var(--dot-hover); }
 
 .band.home text { opacity: 1; }
-.band.selected .dots { fill: var(--tile-text); }
+.dots.selected { fill: var(--tile-text); }
 .band.selected text { fill: var(--tile-text); opacity: 1; }
 
 /* Konum noktası */
@@ -485,6 +485,7 @@ body {
 }
 
 .setting { display: flex; flex-direction: column; gap: 8px; }
+.setting[hidden] { display: none; }
 .status {
   font-size: 10px;
   font-weight: 700;

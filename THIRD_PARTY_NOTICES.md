@@ -11,9 +11,9 @@ components are not covered by Flaptab's proprietary license (`LICENSE`).
 | Noto Sans Arabic (font) | Arabic text | SIL Open Font License 1.1 | `fonts/noto-sans-arabic-*.woff2` |
 | Noto Sans SC (font, subset) | Chinese text | SIL Open Font License 1.1 | `fonts/noto-sans-sc-subset-*.woff2` |
 | Feather Icons | Settings (gear) icon | MIT | `newtab.html` |
-| world-atlas | Source of the world map land mask | ISC | `world.js` (derived) |
 | Natural Earth | Underlying map data | Public domain | `world.js` (derived) |
-| IANA Time Zone Database | Time zone to map band table | Public domain | `tz-bands.js` (derived) |
+| Natural Earth, IANA Time Zone Database | Time zone of each map point; capital cities | Public domain | `places.js` (derived) |
+| "Split Flap Display" by ngruber (Freesound #261244) | Flap sound (Board theme) | CC0 1.0 (public domain) | `sounds/flap.wav` (excerpts) |
 
 ---
 
@@ -87,24 +87,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## world-atlas
-
-```
-Copyright 2013-2019 Michael Bostock
-
-Permission to use, copy, modify, and/or distribute this software for any purpose
-with or without fee is hereby granted, provided that the above copyright notice
-and this permission notice appear in all copies.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
-THIS SOFTWARE.
-```
-
 ## Natural Earth
 
 Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com.
@@ -115,3 +97,11 @@ Natural Earth data is in the public domain.
 The time zone identifiers in `tz-bands.js` were derived from `zone.tab` of the
 IANA Time Zone Database (https://www.iana.org/time-zones), which is in the
 public domain.
+
+## Split Flap Display (sound)
+
+"Split Flap Display" by ngruber, https://freesound.org/people/ngruber/sounds/261244/ ,
+dedicated to the public domain under Creative Commons CC0 1.0
+(https://creativecommons.org/publicdomain/zero/1.0/). `sounds/flap.wav` contains
+ten short excerpts of single flap hits, high-pass filtered and normalized. No
+attribution is required; it is credited here as a courtesy.

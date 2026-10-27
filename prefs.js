@@ -6,12 +6,14 @@ const LANGS = ["en", "tr", "ar", "zh", "fr", "ru", "es", "de"];
 const prefs = (() => {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(PREFS_KEY)) || {}; } catch {}
-  // Varsayılanlar: Pano teması, İngilizce, 24 saat, saniye kapalı, konum açık
+  // Varsayılanlar: Pano teması, İngilizce, 24 saat, saniye kapalı, ses kapalı, konum açık
   return {
     theme: THEMES.includes(saved.theme) ? saved.theme : "board",
     lang: LANGS.includes(saved.lang) ? saved.lang : "en",
     hour: saved.hour === "12" ? "12" : "24",
     sec: saved.sec === "on" ? "on" : "off",
+    // Kart sesi (yalnızca Pano teması); varsayılan kapalı
+    sound: saved.sound === "on" ? "on" : "off",
     // Konum eklentide varsayılan olarak açık (izin kurulumda verilir); web sürümünde ilk ziyarette
     // izin penceresi çıkmasın diye kapalı. Kullanıcının seçimi her zaman korunur.
     loc: saved.loc ? (saved.loc === "off" ? "off" : "on") : (globalThis.FLAPTAB_WEB ? "off" : "on"),
