@@ -43,7 +43,7 @@ function audioCtx() {
 }
 
 function clack() {
-  if (prefs.sound !== "on" || document.documentElement.dataset.theme !== "board" || document.hidden) return;
+  if (prefs.flapSound !== "on" || document.documentElement.dataset.theme !== "board" || document.hidden) return;
   const now = performance.now();
   if (now - lastClack < CLACK_GAP) return;
   lastClack = now;
@@ -60,7 +60,7 @@ function clack() {
 }
 
 // Tarayıcının ses kilidi ilk kullanıcı etkileşiminde açılır
-addEventListener("pointerdown", () => { if (prefs.sound === "on") audioCtx(); }, { once: true });
+addEventListener("pointerdown", () => { if (prefs.flapSound === "on") audioCtx(); }, { once: true });
 
 // Tek bir mekanik kart: hedef karaktere ulaşana kadar sırayla döner.
 class Flap {
@@ -599,9 +599,9 @@ panel.querySelectorAll(".seg button").forEach((b) => {
       document.documentElement.dataset.theme = prefs.theme;
       applySoundSetting();
       replay();
-    } else if (key === "sound") {
+    } else if (key === "flapSound") {
       // Açınca kısa bir dönüşle sesi dinlet (tıklama ses kilidini de açar)
-      if (prefs.sound === "on") { audioCtx(); setTimeout(idleSpin, 150); }
+      if (prefs.flapSound === "on") { audioCtx(); setTimeout(idleSpin, 150); }
     } else if (key === "hour") {
       render();
     } else if (key === "sec") {

@@ -12,8 +12,9 @@ const prefs = (() => {
     lang: LANGS.includes(saved.lang) ? saved.lang : "en",
     hour: saved.hour === "12" ? "12" : "24",
     sec: saved.sec === "on" ? "on" : "off",
-    // Kart sesi (yalnızca Pano teması); varsayılan kapalı
-    sound: saved.sound === "on" ? "on" : "off",
+    // Kart sesi (yalnızca Pano teması); varsayılan kapalı. Testlerde açılmış eski "sound" kaydı
+    // bir kereliğine sıfırlansın diye ayar "flapSound" adıyla saklanır.
+    flapSound: saved.flapSound === "on" ? "on" : "off",
     // Konum eklentide varsayılan olarak açık (izin kurulumda verilir); web sürümünde ilk ziyarette
     // izin penceresi çıkmasın diye kapalı. Kullanıcının seçimi her zaman korunur.
     loc: saved.loc ? (saved.loc === "off" ? "off" : "on") : (globalThis.FLAPTAB_WEB ? "off" : "on"),
